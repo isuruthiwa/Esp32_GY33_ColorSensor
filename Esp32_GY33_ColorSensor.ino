@@ -1,22 +1,22 @@
 
 /*
- * This code included color reading from GY-33 Color sensor using
- * UART communication and send the readings to Bluetooth device and
- * OLED Display
- * 
- * Base dev board : ESP32
- * OLED Display : 128x32 - I2C
- * 
- * GY-33 Connections
- * 
- * VCC----VCC
- * GND----GND
- * GY33_TX---16,  
- * GY33_RX---17
- * 
- * written by: @isuruthiwa
- * 
- */
+   This code included color reading from GY-33 Color sensor using
+   UART communication and send the readings to Bluetooth device and
+   OLED Display
+
+   Base dev board : ESP32
+   OLED Display : 128x32 - I2C
+
+   GY-33 Connections
+
+   VCC----VCC
+   GND----GND
+   GY33_TX---16,
+   GY33_RX---17
+
+   written by: @isuruthiwa
+
+*/
 
 #include <SPI.h>
 #include <Wire.h>
@@ -37,7 +37,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 #error Bluetooth is not enabled! Please run `make menuconfig` to and enable it
 #endif
 
-BluetoothSerial SerialBT; 
+BluetoothSerial SerialBT;
 
 /*
   GY-33
@@ -52,9 +52,15 @@ BluetoothSerial SerialBT;
 
 #define RXD2 16
 #define TXD2 17
+#define ledPin 18
 unsigned char Re_buf[11], counter = 0;
 unsigned char sign = 0;
 byte rgb[3] = {0};
+
+//setting PWM properties
+const int freq = 4000;
+const int ledChannel = 0;
+const int resolution = 8;
 
 void setup() {
   // put your setup code here, to run once:
@@ -82,11 +88,15 @@ void setup() {
 
   display.setTextSize(1); // Draw 2X-scale text
   display.setTextColor(SSD1306_WHITE);
+  
+  ledcAttachPin(ledPin, ledChannel);
+  ledcSetup(ledChannel, freq, resolution);
 
-
+  
 }
 
 void loop() {
+  ledcWrite(ledChannel, 150);
   unsigned char i = 0, sum = 0;
   while (Serial2.available()) {
     Re_buf[counter] = (unsigned char)Serial2.read();
@@ -116,7 +126,7 @@ void loop() {
       Serial.println( rgb[2]);
 
       display.clearDisplay();
-      display.setCursor(0, 0);
+      display.setCursor(0, 6);
       display.print("Red : ");
       display.println(rgb[0]);
       display.print("Green : ");
